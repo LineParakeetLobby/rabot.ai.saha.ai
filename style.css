@@ -1,0 +1,142 @@
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #1e293b, #020617);
+  font-family: Arial;
+  color: white;
+}
+
+.app {
+  text-align: center;
+  padding: 20px;
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.title {
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: #0f172a;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(0,255,200,0.2);
+}
+
+.balance {
+  font-size: 40px;
+  font-weight: bold;
+}
+
+.income {
+  color: #22c55e;
+  margin-bottom: 10px;
+}
+
+.progress {
+  height: 10px;
+  background: #1e293b;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  transition: width 0.1s linear;
+}
+
+.samovar {
+  margin-top: 30px;
+  user-select: none;
+}
+
+.samovar-emoji {
+  font-size: 120px;
+  cursor: pointer;
+  transition: transform 0.1s;
+  display: inline-block;
+}
+
+.samovar-emoji:active {
+  transform: scale(0.9);
+}
+
+.samovar-emoji.bounce {
+  animation: bounce 0.15s ease;
+}
+
+@keyframes bounce {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(0.85); }
+  100% { transform: scale(1); }
+}
+
+.level {
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #94a3b8;
+}
+
+.btn {
+  display: block;
+  width: 80%;
+  margin: 10px auto;
+  padding: 12px;
+  border: none;
+  border-radius: 15px;
+  font-size: 16px;
+  color: white;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.collect {
+  background: linear-gradient(45deg, #22c55e, #16a34a);
+}
+
+.upgrade {
+  background: linear-gradient(45deg, #3b82f6, #2563eb);
+}
+
+.boost {
+  background: linear-gradient(45deg, #f59e0b, #d97706);
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.float-text {
+  position: fixed;
+  pointer-events: none;
+  font-size: 22px;
+  font-weight: bold;
+  color: #4ade80;
+  animation: floatUp 0.8s ease-out forwards;
+  z-index: 100;
+}
+
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-60px); }
+}
