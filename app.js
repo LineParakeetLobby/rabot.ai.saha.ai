@@ -1,10 +1,25 @@
+// Telegram WebApp init
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+}
+
+function haptic(type) {
+  try {
+    if (tg && tg.HapticFeedback) {
+      tg.HapticFeedback.impactOccurred(type);
+    }
+  } catch (_) {}
+}
+
 // Game state
 const state = {
   balance: 0,
   totalTaps: 0,
   level: 1,
   perTap: 1,
-  perSecond: 0,
+  income: 1,
   upgradeCost: 50,
   boostCost: 200,
   boostActive: false,
@@ -14,7 +29,7 @@ const state = {
   progressCurrent: 0,
 };
 
-// DOM elements
+// DOM
 const balanceEl = document.getElementById('balance');
 const incomeEl = document.getElementById('income');
 const progressBar = document.getElementById('progress-bar');
@@ -29,7 +44,6 @@ const upgradeBtn = document.getElementById('upgrade-btn');
 const boostBtn = document.getElementById('boost-btn');
 const samovarEl = document.getElementById('samovar');
 
-// Format numbers nicely
 function formatNum(n) {
   if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
   if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
@@ -37,17 +51,16 @@ function formatNum(n) {
   return Math.floor(n).toString();
 }
 
-// Update UI
 function render() {
   balanceEl.textContent = formatNum(state.balance);
-  incomeEl.textContent = '+' + formatNum(state.perSecond) + ' / sec';
-  levelEl.textContent = 'Level ' + state.level;
+  incomeEl.textContent = '+' + formatNum(state.income) + ' / сек';
+  levelEl.textContent = 'Уровень ' + state.level;
   statLevelEl.textContent = state.level;
   tapsEl.textContent = formatNum(state.totalTaps);
   perTapEl.textContent = formatNum(state.perTap * state.boostMultiplier);
   collectRewardEl.textContent = '+' + formatNum(state.perTap * state.boostMultiplier);
-  upgradeCostEl.textContent = 'Cost: ' + formatNum(state.upgradeCost);
-  boostCostEl.textContent = 'Cost: ' + formatNum(state.boostCost);
+  upgradeCostEl.textContent = formatNum(state.upgradeCost) + ' монет';
+  boostCostEl.textContent = formatNum(state.boostCost) + ' монет';
 
   upgradeBtn.disabled = state.balance < state.upgradeCost;
   boostBtn.disabled = state.balance < state.boostCost || state.boostActive;
@@ -56,7 +69,6 @@ function render() {
   progressBar.style.width = pct + '%';
 }
 
-// Floating text effect on tap
 function showFloatText(x, y, text) {
   const el = document.createElement('div');
   el.className = 'float-text';
@@ -67,14 +79,14 @@ function showFloatText(x, y, text) {
   setTimeout(() => el.remove(), 800);
 }
 
-// Collect tea (tap)
 function collect() {
   const earned = state.perTap * state.boostMultiplier;
   state.balance += earned;
   state.totalTaps++;
   state.progressCurrent += earned;
 
-  // Check level up
+  haptic('light');
+
   if (state.progressCurrent >= state.progressTarget) {
     levelUp();
   }
@@ -82,53 +94,58 @@ function collect() {
   render();
 }
 
-// Samovar tap handler
+// Samovar tap
 samovarEl.addEventListener('click', function (e) {
   collect();
 
-  // Bounce animation
   samovarEl.classList.remove('bounce');
-  void samovarEl.offsetWidth; // force reflow
+  void samovarEl.offsetWidth;
   samovarEl.classList.add('bounce');
 
-  // Float text
   showFloatText(e.clientX - 20, e.clientY - 30, '+' + formatNum(state.perTap * state.boostMultiplier));
 });
 
-// Level up
 function levelUp() {
   state.level++;
   state.progressCurrent = 0;
   state.progressTarget = Math.floor(state.progressTarget * 1.8);
-  state.perSecond += Math.ceil(state.level * 0.5);
+  state.income = Math.floor(state.income * 1.8);
+  haptic('medium');
   render();
 }
 
-// Upgrade
 function upgrade() {
-  if (state.balance < state.upgradeCost) return;
+  if (state.balance < state.upgradeCost) {
+    if (tg) tg.showAlert('Недостаточно монет!');
+    return;
+  }
   state.balance -= state.upgradeCost;
   state.perTap += Math.ceil(state.level * 0.5);
   state.upgradeCost = Math.floor(state.upgradeCost * 1.6);
+  haptic('medium');
   render();
 }
 
-// Boost
 function activateBoost() {
-  if (state.balance < state.boostCost || state.boostActive) return;
+  if (state.balance < state.boostCost || state.boostActive) {
+    if (state.balance < state.boostCost && tg) tg.showAlert('Недостаточно монет!');
+    return;
+  }
   state.balance -= state.boostCost;
   state.boostActive = true;
   state.boostMultiplier = 2;
   state.boostCost = Math.floor(state.boostCost * 1.4);
 
+  haptic('heavy');
+
   const btn = document.getElementById('boost-btn');
   let remaining = 10;
-  btn.textContent = '🔥 Boost Active — ' + remaining + 's';
+  btn.textContent = '🔥 Буст активен — ' + remaining + 'с';
   btn.disabled = true;
 
   state.boostTimer = setInterval(() => {
     remaining--;
-    btn.textContent = '🔥 Boost Active — ' + remaining + 's';
+    btn.textContent = '🔥 Буст активен — ' + remaining + 'с';
     if (remaining <= 0) {
       clearInterval(state.boostTimer);
       state.boostActive = false;
@@ -140,11 +157,11 @@ function activateBoost() {
   render();
 }
 
-// Passive income tick
+// Passive income
 setInterval(() => {
-  if (state.perSecond > 0) {
-    state.balance += state.perSecond * state.boostMultiplier;
-    state.progressCurrent += state.perSecond * state.boostMultiplier;
+  if (state.income > 0) {
+    state.balance += state.income * state.boostMultiplier;
+    state.progressCurrent += state.income * state.boostMultiplier;
     if (state.progressCurrent >= state.progressTarget) {
       levelUp();
     }
@@ -152,7 +169,7 @@ setInterval(() => {
   }
 }, 1000);
 
-// Save / load game state
+// Save / load
 function saveGame() {
   localStorage.setItem('samovar_save', JSON.stringify(state));
 }
@@ -162,16 +179,13 @@ function loadGame() {
   if (saved) {
     const data = JSON.parse(saved);
     Object.assign(state, data);
-    // Reset transient state
     state.boostActive = false;
     state.boostMultiplier = 1;
     state.boostTimer = null;
   }
 }
 
-// Auto-save every 5 seconds
 setInterval(saveGame, 5000);
 
-// Load on start
 loadGame();
 render();

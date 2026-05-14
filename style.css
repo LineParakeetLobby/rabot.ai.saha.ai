@@ -58,8 +58,8 @@ body {
 .samovar-emoji {
   font-size: 120px;
   cursor: pointer;
-  transition: transform 0.1s;
   display: inline-block;
+  animation: pulse 1s infinite;
 }
 
 .samovar-emoji:active {
@@ -68,6 +68,12 @@ body {
 
 .samovar-emoji.bounce {
   animation: bounce 0.15s ease;
+}
+
+@keyframes pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 @keyframes bounce {
